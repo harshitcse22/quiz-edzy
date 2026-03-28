@@ -8,12 +8,16 @@ interface QuizState {
   wrongAttempts: number;
   selectedAnswer: string | null;
   hasSubmittedCurrent: boolean;
+  isFinished: boolean;
 
   // Actions
   setQuestions: (questions: QuizQuestion[]) => void;
   setSelectedAnswer: (optionId: string) => void;
   submitAnswer: () => void;
+  retryQuestion: () => void;
   nextQuestion: () => void;
+  handleTimeUp: () => void;
+  finishQuiz: () => void;
   resetQuiz: () => void;
 }
 
@@ -24,6 +28,7 @@ export const useQuizStore = create<QuizState>((set) => ({
   wrongAttempts: 0,
   selectedAnswer: null,
   hasSubmittedCurrent: false,
+  isFinished: false,
 
   setQuestions: (questions) => 
     set({ 
@@ -32,7 +37,8 @@ export const useQuizStore = create<QuizState>((set) => ({
       score: 0, 
       wrongAttempts: 0, 
       selectedAnswer: null,
-      hasSubmittedCurrent: false
+      hasSubmittedCurrent: false,
+      isFinished: false
     }),
   
   setSelectedAnswer: (optionId) => 
@@ -58,6 +64,12 @@ export const useQuizStore = create<QuizState>((set) => ({
       };
     }),
 
+  retryQuestion: () =>
+    set({
+      hasSubmittedCurrent: false,
+      selectedAnswer: null,
+    }),
+
   nextQuestion: () => 
     set((state) => {
       if (state.currentQuestionIndex < state.questions.length - 1) {
@@ -70,6 +82,20 @@ export const useQuizStore = create<QuizState>((set) => ({
       return state;
     }),
 
+  handleTimeUp: () => set((state) => {
+    if (state.currentQuestionIndex === state.questions.length - 1) {
+      return { wrongAttempts: state.wrongAttempts + 1, isFinished: true };
+    }
+    return {
+      wrongAttempts: state.wrongAttempts + 1,
+      currentQuestionIndex: state.currentQuestionIndex + 1,
+      selectedAnswer: null,
+      hasSubmittedCurrent: false
+    };
+  }),
+
+  finishQuiz: () => set({ isFinished: true }),
+
   resetQuiz: () => 
     set({
       questions: [],
@@ -77,6 +103,7 @@ export const useQuizStore = create<QuizState>((set) => ({
       score: 0,
       wrongAttempts: 0,
       selectedAnswer: null,
-      hasSubmittedCurrent: false
+      hasSubmittedCurrent: false,
+      isFinished: false
     })
 }));
